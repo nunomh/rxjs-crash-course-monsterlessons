@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { of, from, fromEvent } from 'rxjs';
+import { of, from, fromEvent, firstValueFrom, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -30,9 +30,10 @@ export class AppComponent {
       { id: 2, name: 'Jane', age: 35 },
       { id: 3, name: 'Mike', age: 25 },
     ];
-    const messagePromise = new Promise((resolve) => {
+    const messagePromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve('Promise resolved');
+        // reject('Promise rejected');
       }, 1000);
     });
 
@@ -40,12 +41,40 @@ export class AppComponent {
     const message$ = from(messagePromise); // when working with promises, use from() method
     const bodyClick$ = fromEvent(document.body, 'click'); // when working with DOM events, use fromEvent() method
 
-    users$.subscribe((users) => {
+    // simulate of() method
+    const users2$ = new Observable((observer) => {
+      // observer.next(1);
+      observer.next(users);
+      observer.complete();
+      observer.next(2);
+    });
+
+    // promise
+    firstValueFrom(users$).then((users) => {
       console.log('users', users);
     });
 
-    message$.subscribe((message) => {
-      console.log('message', message);
+    // observable
+    users$.subscribe((users) => {
+      console.log('users', users);
+    });
+    users2$.subscribe((users) => {
+      console.log('users2', users);
+    });
+
+    // message$.subscribe((message) => {
+    //   console.log('message', message);
+    // });
+    message$.subscribe({
+      next: (message) => {
+        console.log('message', message);
+      },
+      error: (error) => {
+        console.error('error', error);
+      },
+      complete: () => {
+        console.log('complete');
+      },
     });
 
     bodyClick$.subscribe((event) => {
